@@ -36,7 +36,7 @@ void faze(const Image& frame, const std::string& fileName) {
             const int g = static_cast<int>(c.g);
             const int b = static_cast<int>(c.b);
 
-            // Первый пиксель — полностью, без дельт
+           
             if (x == 0 && y == 0) {
                 file << r << "/" << g << "/" << b << ";";
                 prevR = r; prevG = g; prevB = b;
@@ -47,7 +47,6 @@ void faze(const Image& frame, const std::string& fileName) {
             const int dG = g - prevG;
             const int dB = b - prevB;
 
-            // Ничего не изменилось — пустая запись между ';'
             if (dR == 0 && dG == 0 && dB == 0) {
                 file << ";";
                 continue;
@@ -56,13 +55,13 @@ void faze(const Image& frame, const std::string& fileName) {
             std::ostringstream oss;
 
             auto writeChannel = [&](char name, int delta, int value) {
-                if (delta == 0) return;                 // канал не изменился
+                if (delta == 0) return;             
                 if (delta > 127 || delta < -127) {
-                    oss << name << value << "/";        // изменение > 50% — новое значение
+                    oss << name << value << "/";   
                 }
                 else {
                     oss << name
-                        << (delta > 0 ? "+" : "")       // минус уже в числе
+                        << (delta > 0 ? "+" : "") 
                         << delta << "/";
                 }
             };
@@ -72,12 +71,12 @@ void faze(const Image& frame, const std::string& fileName) {
             writeChannel('B', dB, b);
 
             std::string s = oss.str();
-            if (!s.empty()) s.pop_back();               // убрать хвостовой '/'
+            if (!s.empty()) s.pop_back();    
             file << s << ";";
 
             prevR = r; prevG = g; prevB = b;
         }
-        file << "|";                                     // конец строки
+        file << "|";                             
     }
 
     Log("[FAZE]", " : Save done");
@@ -91,7 +90,6 @@ Image fazeLoad(const std::string& fileName) {
         throw std::runtime_error("Can't open file: " + fileName);
     }
 
-    // ---- 1. Читаем заголовок "W:H;" ----
     int W = 0, H = 0;
     char ch = 0;
 
@@ -106,22 +104,14 @@ Image fazeLoad(const std::string& fileName) {
 
     int prevR = 0, prevG = 0, prevB = 0;
 
-    // ---- 2. Читаем поток пикселей ----
-    // Идём посимвольно, собирая "токен" между ';'.
-    // '|' — конец строки, переводит x в 0, y++.
-    // Пустой токен — пиксель не изменился.
     int x = 0, y = 0;
     bool firstPixel = true;
     std::string token;
 
     auto flushPixel = [&]() {
-        // token уже накоплен. Разбираем его.
-        // Если пусто — пиксель как предыдущий.
         if (!token.empty()) {
-            // Токен вида "R+3/G-5/B+10" или "R255/G128/B0"
             size_t pos = 0;
             while (pos < token.size()) {
-                // Ищем следующий '/' или конец
                 size_t slash = token.find('/', pos);
                 std::string part = token.substr(
                     pos,
@@ -134,7 +124,6 @@ Image fazeLoad(const std::string& fileName) {
 
                     int value = 0;
                     if (num[0] == '+' || num[0] == '-') {
-                        // Дельта: прибавляем к предыдущему
                         value = std::stoi(num);
                         int* target = nullptr;
                         if (chName == 'R') target = &prevR;
@@ -149,7 +138,6 @@ Image fazeLoad(const std::string& fileName) {
                         }
                     }
                     else {
-                        // Абсолютное значение канала
                         value = std::stoi(num);
                         if (value < 0) value = 0;
                         if (value > 255) value = 255;
@@ -164,7 +152,6 @@ Image fazeLoad(const std::string& fileName) {
             }
         }
 
-        // Пишем пиксель
         if (x < W && y < H) {
             Color c{
                 static_cast<uint8_t>(prevR),
@@ -184,12 +171,10 @@ Image fazeLoad(const std::string& fileName) {
             token.clear();
         }
         else if (c == '|') {
-            // Конец строки
             x = 0;
             ++y;
         }
         else if (c == '\n' || c == '\r' || c == ' ' || c == '\t') {
-            // Игнорируем whitespace (если кто-то форматировал файл руками)
             continue;
         }
         else {
@@ -197,7 +182,6 @@ Image fazeLoad(const std::string& fileName) {
         }
     }
 
-    // Если файл не заканчивается ';', но токен остался — дописываем
     if (!token.empty()) {
         flushPixel();
     }
