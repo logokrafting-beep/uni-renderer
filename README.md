@@ -1,7 +1,8 @@
-uni-renderer - это проект созданный для наглядного изучения работы и рисовки графики не использующий сторонние зависимости. 
-Создан именно для ОБУЧЕНИЯ, так как не использует ГПУ, не имеет многопоточности. Пока что не имеет сжатия.
+uni-renderer is a project created for a visual study of how graphics are rendered and drawn, without using any third‑party dependencies.
+It was created specifically for LEARNING purposes, as it does not use GPU and has no multithreading. Currently, it does not support compression.
 
-- Для начала использования надо просто добавить все .h файлы в директорию проекта.
-- В корне проекта добавьте #include "unigraphics.h"
-- Изображение создастся в формате .bmp
-- Помимо графики есть готовые простые функции рандома в unirandom.h и простые функции для наглядного вывода в unilog.h
+
+- To start using it, simply add all .h files to the project directory.
+- Add #include "unigraphics.h" to the project root.
+- The image will be created in .bmp format.
+- In addition to graphics, there are ready‑made simple random functions in unirandom.h and simple functions for visual output in unilog.h
